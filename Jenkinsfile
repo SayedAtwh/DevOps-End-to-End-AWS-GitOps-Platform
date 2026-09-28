@@ -61,11 +61,8 @@ pipeline {
         stage("Update Kubernetes Manifest") {
             steps {
                 withCredentials([
-                    usernamePassword(
-                        credentialsId: 'github-credentials',
-                        usernameVariable: 'GIT_USERNAME',
-                        passwordVariable: 'GIT_TOKEN'
-                    )
+                    string(credentialsId: 'GIT_USERNAME', variable: 'GIT_USERNAME'),
+                    string(credentialsId: 'GIT_TOKEN', variable: 'GIT_TOKEN')
                 ]) {
                     sh '''
                         sed -i "s|image: .*|image: ${IMAGE_TAG}:${IMAGE_VERSION}|" K8S/deployment.yml
@@ -77,7 +74,8 @@ pipeline {
 
                         git commit -m "Update image to ${IMAGE_VERSION}" || true
 
-                        git push https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/SayedAtwh/DevOps-End-to-End-AWS-GitOps-Platform.git HEAD:main                    '''
+                        git push https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/SayedAtwh/DevOps-End-to-End-AWS-GitOps-Platform.git HEAD:main
+                    '''
                 }
             }
         }
