@@ -10,10 +10,10 @@ pipeline {
     }
 
     environment {
-        IMAGE_NAME = "java-app-declartive"
-        IMAGE_TAG = "sayedatwhdevops/java-app-declartive"
+        IMAGE_NAME = "java-app"
+        IMAGE_TAG = "sayedatwhdevops/java-app"
         IMAGE_VERSION = "v${BUILD_NUMBER}"
-        CONTAINER_NAME = "java-app-declartive"
+        CONTAINER_NAME = "java-app"
     }
 
     stages {
