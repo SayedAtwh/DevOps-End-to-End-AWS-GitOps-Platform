@@ -60,15 +60,22 @@ pipeline {
 
         stage("Update Kubernetes Manifest") {
             steps {
-                sh '''
-                    sed -i "s|image: .*|image: ${IMAGE_TAG}:${IMAGE_VERSION}|" K8S/deployment.yml
-
-                    git add K8S/deployment.yml
-
-                    git commit -m "Update image to ${IMAGE_VERSION}"
-
-                    git push origin main
-                '''
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'github-credentials',
+                        usernameVariable: 'GIT_USERNAME',
+                        passwordVariable: 'GIT_TOKEN'
+                    )
+                ]) {
+                    sh '''
+                        sed -i "s|image: .*|image: ${IMAGE_TAG}:${IMAGE_VERSION}|" K8S/deployment.yml
+                        git config user.name "Jenkins"
+                        git config user.email "jenkins@sayedatwh"
+                        git add K8S/deployment.yml
+                        git commit -m "Update image to ${IMAGE_VERSION}" || true
+                        git push https://github.com/SayedAtwh/DevOps-End-to-End-AWS-GitOps-Platform.git HEAD:main
+                    '''
+                }
             }
         }
     }
