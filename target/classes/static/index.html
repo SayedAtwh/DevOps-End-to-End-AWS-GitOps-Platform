@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>الهدى | Al-Huda</title>
+  <meta name="description" content="الهدى | Al-Huda — رفيقك اليومي للقرآن والذكر والصلاة." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="/product.css?v=3" />
+</head>
+
+<body>
+  <div class="bg-orb orb-one"></div>
+  <div class="bg-orb orb-two"></div>
+
+  <header class="site-header">
+    <div class="topbar container">
+      <a class="brand" href="#home" aria-label="الهدى، الرئيسية">
+        <span class="brand-mark">الهدى</span>
+        <span class="brand-caption">مكتبة إسلامية</span>
+      </a>
+
+      <nav class="desktop-nav" aria-label="التنقل الرئيسي">
+        <a href="#home" data-nav-section="home">الرئيسية</a>
+        <a href="#quran" data-nav-section="quran">القرآن</a>
+        <a href="#azkar" data-nav-section="azkar">الأذكار</a>
+        <a href="#hadith" data-nav-section="hadith">الأحاديث</a>
+        <a href="#prayer" data-nav-section="prayer">الصلاة</a>
+        <a href="#qibla" data-nav-section="qibla">القبلة</a>
+      </nav>
+
+      <button class="icon-button" id="openSettingsBtn" type="button" aria-label="الإعدادات" title="الإعدادات">⚙</button>
+    </div>
+  </header>
+
+  <main id="home">
+    <section class="hero container home-hero">
+      <div class="hero-copy">
+        <p class="eyebrow" id="todayDateLabel">اليوم</p>
+        <h1>السلام عليكم،<br />مرحبًا بك في الهدى</h1>
+        <p class="welcome-copy">مساحة هادئة للقرآن والذكر والمعرفة الإسلامية.</p>
+
+        <article class="continue-card" aria-labelledby="homeContinueTitle">
+          <div>
+            <span class="kicker">آخر قراءة</span>
+            <h2 id="homeContinueTitle">متابعة القراءة</h2>
+            <p><span id="homeReadingSurah">سورة الفاتحة</span><span class="reading-divider">·</span><span
+                id="homeReadingPage">صفحة 1</span></p>
+          </div>
+          <button class="btn btn-primary" id="continueReadingHomeBtn" type="button">متابعة القراءة</button>
+        </article>
+      </div>
+
+      <div class="hero-visual">
+        <nav class="quick-action-grid" aria-label="اختصارات سريعة">
+          <a class="quick-action" href="#quran"><span aria-hidden="true">۞</span><strong>القرآن</strong></a>
+          <a class="quick-action" href="#azkar"><span aria-hidden="true">◌</span><strong>الأذكار</strong></a>
+          <a class="quick-action" href="#hadith"><span aria-hidden="true">❞</span><strong>الأحاديث</strong></a>
+          <a class="quick-action" href="#qibla"><span aria-hidden="true">⌖</span><strong>القبلة</strong></a>
+        </nav>
+
+        <article class="home-prayer-preview">
+          <div class="home-prayer-heading">
+            <div>
+              <span class="kicker">الصلاة القادمة</span>
+              <h2 id="homeNextPrayerName">جارٍ تحديدها</h2>
+            </div>
+            <strong id="homePrayerCountdown">--:--:--</strong>
+          </div>
+          <div id="homePrayerList" class="home-prayer-list" aria-label="مواقيت الصلاة"></div>
+          <a href="#prayer" class="text-link">كل مواقيت الصلاة <span aria-hidden="true">←</span></a>
+        </article>
+      </div>
+    </section>
+
+    <section class="container daily-reminder" aria-label="تذكير قرآني">
+      <div>
+        <span class="kicker">تدبر اليوم</span>
+        <blockquote>فَإِنَّ مَعَ الْعُسْرِ يُسْرًا ۝ إِنَّ مَعَ الْعُسْرِ يُسْرًا</blockquote>
+        <p>سورة الشرح، الآيتان 5–6</p>
+      </div>
+      <a class="text-link" href="#quran">اقرأ في المصحف <span aria-hidden="true">←</span></a>
+    </section>
+
+    <section id="quran" class="container content-section">
+      <div class="section-header">
+        <div>
+          <span class="kicker">القرآن</span>
+          <h2>القرآن الكريم</h2>
+        </div>
+      </div>
+
+      <div id="quranLibraryPane" class="quran-library-pane">
+        <label class="visually-hidden" for="quranSearch">بحث في القرآن</label>
+        <input id="quranSearch" class="quran-search" type="search" placeholder="ابحث باسم السورة أو رقمها" />
+        <nav class="quran-library-tabs" role="tablist" aria-label="فهرس القرآن">
+          <button class="quran-library-tab active" type="button" role="tab" aria-selected="true"
+            data-quran-tab="surahs">السور</button>
+          <button class="quran-library-tab" type="button" role="tab" aria-selected="false"
+            data-quran-tab="juz">الأجزاء</button>
+          <button class="quran-library-tab" type="button" role="tab" aria-selected="false" data-quran-tab="last">آخر
+            قراءة</button>
+          <button class="quran-library-tab" type="button" role="tab" aria-selected="false"
+            data-quran-tab="favorites">المفضلة</button>
+        </nav>
+        <div id="quranCatalogList" class="quran-catalog-list" aria-live="polite">
+          <p class="catalog-status">جارٍ تحميل فهرس القرآن...</p>
+        </div>
+      </div>
+
+      <div id="quranReaderPane" class="quran-reader-pane" hidden>
+        <div class="reader-toolbar">
+          <button class="text-button" id="quranBackBtn" type="button">← المكتبة</button>
+          <div class="reader-title">
+            <h2 id="currentSurahName">سورة الفاتحة</h2>
+            <span id="currentSurahMeta">الآيات 7</span>
+          </div>
+          <div class="reader-header-controls">
+            <button class="icon-button" id="favoritePageBtn" type="button" aria-label="إضافة إلى المفضلة"
+              title="إضافة إلى المفضلة">☆</button>
+            <button class="icon-button" id="readerSettingsBtn" type="button" aria-label="إعدادات القراءة"
+              title="إعدادات القراءة">Aa</button>
+          </div>
+        </div>
+
+        <label class="visually-hidden" for="surahSelect">اختر السورة</label>
+        <select id="surahSelect" class="reader-surah-select" aria-label="اختر سورة">
+          <option value="">جارٍ تحميل السور...</option>
+        </select>
+
+        <div class="reading-mode-toggle">
+          <button class="mode-btn active" data-mode="read" type="button">قراءة</button>
+          <button class="mode-btn" data-mode="listen" type="button">استماع</button>
+        </div>
+
+        <div class="quran-page-shell">
+          <button class="page-arrow" id="prevPageBtn" type="button" aria-label="الصفحة السابقة"
+            title="الصفحة السابقة">→</button>
+          <div id="ayahContainer" class="ayah-block quran-page" aria-live="polite"></div>
+          <button class="page-arrow" id="nextPageBtn" type="button" aria-label="الصفحة التالية"
+            title="الصفحة التالية">←</button>
+        </div>
+        <div class="quran-page-footer">
+          <span id="pageCounter">صفحة 1 من 604</span>
+          </aside>
+        </div>
+    </section>
+
+    <div class="audio-player" id="audioPlayerBar">
+      <div class="player-track">
+        <div class="track-info">
+          <span class="label">تلاوة الشيخ ياسر الدوسري</span>
+          <strong id="audioLabel">سورة الفاتحة كاملة</strong>
+          <button class="text-button" id="listenNowBtn" type="button">استمع الآن</button>
+        </div>
+
+        <div class="player-controls">
+          <button class="mini-btn" id="audioPrevSurahBtn" type="button" aria-label="السورة السابقة">⏮</button>
+          <button class="play-btn" type="button" id="playSurahBtn" aria-label="تشغيل السورة كاملة">▶</button>
+          <button class="mini-btn" id="audioNextSurahBtn" type="button" aria-label="السورة التالية">⏭</button>
+        </div>
+
+        <audio id="quranAudioPlayer" controls preload="none"></audio>
+      </div>
+    </div>
+
+    <dialog id="settingsDialog" class="bottom-sheet" aria-labelledby="settingsTitle">
+      <div class="sheet-heading">
+        <div>
+          <span class="kicker">تخصيص التجربة</span>
+          <h2 id="settingsTitle">الإعدادات</h2>
+        </div>
+        <button class="icon-button" type="button" data-close-dialog aria-label="إغلاق">×</button>
+      </div>
+      <div class="settings-grid">
+        <label for="themeSelect">مظهر القراءة</label>
+        <select id="themeSelect">
+          <option value="light">فاتح</option>
+          <option value="sepia">ورقي</option>
+          <option value="dark">داكن</option>
+        </select>
+        <label for="quranFontSelect">خط المصحف</label>
+        <select id="quranFontSelect">
+          <option value="naskh">نسخ</option>
+          <option value="amiri">أميري</option>
+        </select>
+      </div>
+      <form id="pageJumpForm" class="page-jump-form sheet-control">
+        <label for="pageJumpInput">اذهب إلى صفحة</label>
+        <input id="pageJumpInput" type="number" min="1" max="604" inputmode="numeric" required />
+        <button class="btn btn-primary" type="submit">اذهب</button>
+      </form>
+      <div class="sheet-actions">
+        <button class="btn btn-secondary" id="bookmarkPageBtn" type="button">حفظ موضع القراءة</button>
+        <button class="btn btn-secondary" id="continueReadingBtn" type="button" disabled>متابعة المحفوظ</button>
+      </div>
+      <div class="font-controls sheet-font-controls" aria-label="حجم خط القرآن">
+        <span>حجم الخط</span>
+        <button class="font-size-btn" id="decreaseFontBtn" type="button" aria-label="تصغير الخط">A−</button>
+        <button class="font-size-btn" id="increaseFontBtn" type="button" aria-label="تكبير الخط">A+</button>
+      </div>
+    </dialog>
+
+    <section id="hadith" class="container content-section">
+      <div class="section-header">
+        <div>
+          <span class="kicker">السنة النبوية</span>
+          <h2>الأحاديث</h2>
+        </div>
+        <span class="section-note">مختارات موثقة ومجموعات الحديث</span>
+      </div>
+
+      <article class="daily-hadith">
+        <div class="daily-hadith-heading">
+          <span class="kicker">حديث مختار</span>
+          <span id="dailyHadithGrade" class="source-badge">من مصدر موثق</span>
+        </div>
+        <h3 id="dailyHadithTitle">جارٍ تحميل الحديث...</h3>
+        <p id="dailyHadithText" class="hadith-text" lang="ar"></p>
+        <div class="daily-hadith-footer">
+          <span id="dailyHadithSource"></span>
+          <a id="dailyHadithReference" href="https://hadeethenc.com/" target="_blank" rel="noreferrer">المصدر والشرح</a>
+        </div>
+      </article>
+
+      <div class="collection-heading">
+        <h3>مجموعات الحديث</h3>
+        <label class="visually-hidden" for="hadithSearch">ابحث عن مجموعة</label>
+        <input id="hadithSearch" class="hadith-search" type="search" placeholder="ابحث عن مجموعة حديث" />
+      </div>
+      <div id="hadithCollections" class="hadith-collection-grid">
+        <a class="hadith-collection" href="https://sunnah.com/bukhari" target="_blank" rel="noreferrer"
+          data-search="البخاري bukhari">
+          <span class="collection-number">01</span>
+          <div>
+            <h4>صحيح البخاري</h4>
+            <p>الإمام محمد بن إسماعيل البخاري</p>
+          </div><span class="collection-open">افتح المجموعة ←</span>
+        </a>
+        <a class="hadith-collection" href="https://sunnah.com/muslim" target="_blank" rel="noreferrer"
+          data-search="مسلم muslim">
+          <span class="collection-number">02</span>
+          <div>
+            <h4>صحيح مسلم</h4>
+            <p>الإمام مسلم بن الحجاج</p>
+          </div><span class="collection-open">افتح المجموعة ←</span>
+        </a>
+        <a class="hadith-collection" href="https://sunnah.com/abudawud" target="_blank" rel="noreferrer"
+          data-search="أبي داود abu dawud">
+          <span class="collection-number">03</span>
+          <div>
+            <h4>سنن أبي داود</h4>
+            <p>الإمام أبو داود السجستاني</p>
+          </div><span class="collection-open">افتح المجموعة ←</span>
+        </a>
+        <a class="hadith-collection" href="https://sunnah.com/tirmidhi" target="_blank" rel="noreferrer"
+          data-search="الترمذي tirmidhi">
+          <span class="collection-number">04</span>
+          <div>
+            <h4>جامع الترمذي</h4>
+            <p>الإمام محمد بن عيسى الترمذي</p>
+          </div><span class="collection-open">افتح المجموعة ←</span>
+        </a>
+        <a class="hadith-collection" href="https://sunnah.com/nasai" target="_blank" rel="noreferrer"
+          data-search="النسائي nasai">
+          <span class="collection-number">05</span>
+          <div>
+            <h4>سنن النسائي</h4>
+            <p>الإمام أحمد بن شعيب النسائي</p>
+          </div><span class="collection-open">افتح المجموعة ←</span>
+        </a>
+        <a class="hadith-collection" href="https://sunnah.com/ibnmajah" target="_blank" rel="noreferrer"
+          data-search="ابن ماجه ibn majah">
+          <span class="collection-number">06</span>
+          <div>
+            <h4>سنن ابن ماجه</h4>
+            <p>الإمام محمد بن يزيد ابن ماجه</p>
+          </div><span class="collection-open">افتح المجموعة ←</span>
+        </a>
+      </div>
+      <p id="hadithSearchEmpty" class="catalog-status" hidden>لا توجد مجموعات مطابقة.</p>
+      <p class="source-disclaimer">المجموعات الكاملة والبحث داخلها متاحان عبر مصدرها الأصلي Sunnah.com.</p>
+    </section>
+
+    <section id="prayer" class="container content-section">
+      <div class="section-header">
+        <div>
+          <span class="kicker">المواقيت</span>
+          <h2>مواقيت الصلاة</h2>
+        </div>
+        <button class="btn btn-secondary" id="requestLocationBtn" type="button">استخدم موقعي</button>
+      </div>
+
+      <div class="prayer-location-row">
+        <span id="prayerCityLabel">المواقيت الافتراضية: القاهرة</span>
+        <span id="hijriDateLabel" class="hijri-date"></span>
+      </div>
+      <article class="next-prayer-panel">
+        <div><span class="kicker">الصلاة القادمة</span>
+          <h3 id="nextPrayerName">جارٍ التحميل</h3>
+        </div>
+        <strong id="nextPrayerCountdown">--:--:--</strong>
+        <span id="nextPrayerTime"></span>
+      </article>
+      <div id="prayerTimesList" class="prayer-times-list" aria-live="polite"></div>
+      <p id="prayerLocationStatus" class="section-note" aria-live="polite"></p>
+    </section>
+
+    <section id="qibla" class="container content-section qibla-section">
+      <div class="section-header">
+        <div>
+          <span class="kicker">القبلة</span>
+          <h2>اتجاه القبلة</h2>
+        </div>
+      </div>
+
+      <div class="qibla-wrap">
+        <div class="compass-stage" aria-label="بوصلة اتجاه القبلة">
+          <div class="compass-dial">
+            <span class="compass-north">ش</span>
+            <span class="compass-east">ق</span>
+            <span class="compass-south">ج</span>
+            <span class="compass-west">غ</span>
+            <div class="needle" id="qiblaNeedle"></div>
+            <div class="center-dot"></div>
+          </div>
+        </div>
+
+        <div class="qibla-info">
+          <span class="kicker">اتجاه مكة المكرمة</span>
+          <strong class="angle" id="qiblaAngle">--°</strong>
+          <p id="qiblaStatus">حدد موقعك لحساب اتجاه القبلة والمسافة.</p>
+          <span id="qiblaDistance" class="qibla-distance"></span>
+          <button class="btn btn-primary" id="locateQiblaBtn" type="button">تحديد اتجاه القبلة</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="azkar" class="container content-section">
+      <div class="section-header">
+        <div>
+          <span class="kicker">الأذكار</span>
+          <h2>أذكارك اليومية</h2>
+        </div>
+      </div>
+
+      <div class="azkar-experience">
+        <aside class="azkar-directory" aria-label="فهرس الأذكار">
+          <label for="azkarSearch">ابحث في الأبواب</label>
+          <input id="azkarSearch" type="search" placeholder="مثال: الصباح، النوم، الصلاة" />
+          <nav id="azkarCategories" class="azkar-categories" aria-label="أبواب حصن المسلم"></nav>
+        </aside>
+
+        <div class="azkar-main">
+          <div class="azkar-main-header">
+            <div>
+              <span class="kicker">الباب المختار</span>
+              <h3 id="azkarCategoryTitle">جارٍ تحميل الأذكار...</h3>
+            </div>
+            <button class="btn btn-secondary" id="resetAzkarProgressBtn" type="button">إعادة تقدم الباب</button>
+          </div>
+
+          <div class="azkar-progress-wrap">
+            <div class="azkar-progress-label">
+              <span id="azkarProgressText">0 من 0 مكتمل</span>
+              <span id="azkarProgressPercent">0%</span>
+            </div>
+            <div class="azkar-progress-track" role="progressbar" aria-label="إنجاز أذكار هذا الباب" aria-valuemin="0"
+              aria-valuemax="100" aria-valuenow="0">
+              <span id="azkarProgressBar"></span>
+            </div>
+          </div>
+
+          <div id="azkarList" class="azkar-list" aria-live="polite">
+            <p class="azkar-status">جارٍ تحميل أبواب حصن المسلم...</p>
+          </div>
+          <nav class="azkar-page-navigation" aria-label="التنقل بين صفحات الأذكار">
+            <button class="page-arrow" id="prevAzkarPageBtn" type="button" aria-label="الصفحة السابقة"
+              title="الصفحة السابقة">→</button>
+            <span id="azkarPageNumber" aria-live="polite">صفحة 1 من 1</span>
+            <button class="page-arrow" id="nextAzkarPageBtn" type="button" aria-label="الصفحة التالية"
+              title="الصفحة التالية">←</button>
+          </nav>
+          <p class="azkar-source">النصوص من <a href="https://hisnmuslim.com/" target="_blank" rel="noreferrer">حصن
+              المسلم</a></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="library" class="container content-section">
+      <div class="section-header">
+        <div>
+          <span class="kicker">مكتبتك اليومية</span>
+          <h2>قراءة وذكر في مكان واحد</h2>
+        </div>
+      </div>
+
+      <nav class="library-shelves" aria-label="رفوف المكتبة الإسلامية">
+        <a href="#quran"><span>01</span><strong>القرآن</strong></a>
+        <a href="https://quran.com/tafsirs" target="_blank" rel="noreferrer"><span>02</span><strong>التفسير</strong></a>
+        <a href="#hadith"><span>03</span><strong>الأحاديث</strong></a>
+        <a href="#azkar"><span>04</span><strong>الأذكار</strong></a>
+        <a href="https://ar.islamway.net/" target="_blank" rel="noreferrer"><span>05</span><strong>السيرة</strong></a>
+        <a href="https://qurancomplex.gov.sa/" target="_blank" rel="noreferrer"><span>06</span><strong>علوم
+            القرآن</strong></a>
+      </nav>
+
+      <div class="library-grid">
+        <article class="card library-module wird-module">
+          <div class="library-module-heading">
+            <span class="kicker">ورد القرآن</span>
+            <span id="wirdDateLabel" class="library-date"></span>
+          </div>
+          <h3>صفحات قرأتها اليوم</h3>
+          <div class="wird-goal-row">
+            <label for="wirdGoalSelect">هدفي اليوم</label>
+            <select id="wirdGoalSelect">
+              <option value="1">صفحة واحدة</option>
+              <option value="3">3 صفحات</option>
+              <option value="5" selected>5 صفحات</option>
+              <option value="10">10 صفحات</option>
+            </select>
+          </div>
+          <div class="wird-progress-copy">
+            <strong id="wirdPagesRead">0</strong>
+            <span id="wirdGoalText">من 5 صفحات</span>
+          </div>
+          <div class="library-progress-track" role="progressbar" aria-label="إنجاز الورد اليومي" aria-valuemin="0"
+            aria-valuemax="100" aria-valuenow="0">
+            <span id="wirdProgressBar"></span>
+          </div>
+          <div class="library-actions">
+            <button class="btn btn-primary" id="markWirdPageBtn" type="button">أتممت صفحة</button>
+            <button class="text-button" id="resetWirdBtn" type="button">إعادة الورد</button>
+            <a class="btn btn-secondary" href="#quran">افتح المصحف</a>
+          </div>
+        </article>
+
+        <article class="card library-module tasbeeh-module">
+          <div class="library-module-heading">
+            <span class="kicker">المسبحة</span>
+            <a href="#azkar">فهرس الأذكار</a>
+          </div>
+          <h3>سبّح على راحتك</h3>
+          <div class="tasbeeh-settings">
+            <label for="tasbeehPhraseSelect">الذكر</label>
+            <select id="tasbeehPhraseSelect">
+              <option value="subhanallah">سبحان الله</option>
+              <option value="alhamdulillah">الحمد لله</option>
+              <option value="allahuakbar">الله أكبر</option>
+              <option value="tahlil">لا إله إلا الله</option>
+            </select>
+            <label for="tasbeehTargetSelect">الهدف</label>
+            <select id="tasbeehTargetSelect">
+              <option value="33">33</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+          <button class="tasbeeh-tap" id="tasbeehTapBtn" type="button" aria-label="سبّح">
+            <strong id="tasbeehCount">0</strong>
+            <span>اضغط للتسبيح</span>
+          </button>
+          <div class="tasbeeh-footer">
+            <span id="tasbeehProgressText">0 من 33</span>
+            <button class="text-button" id="resetTasbeehBtn" type="button">إعادة العداد</button>
+          </div>
+          <div class="library-progress-track" role="progressbar" aria-label="تقدم التسبيح" aria-valuemin="0"
+            aria-valuemax="100" aria-valuenow="0">
+            <span id="tasbeehProgressBar"></span>
+          </div>
+        </article>
+
+        <article class="card library-module travel-dua-module">
+          <div class="library-module-heading">
+            <span class="kicker">دعاء من القرآن</span>
+            <span class="dua-reference">الزخرف 13–14</span>
+          </div>
+          <h3>دعاء السفر</h3>
+          <blockquote id="travelDuaText" class="travel-dua-text" dir="rtl">
+            سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَذَا وَمَا كُنَّا لَهُ مُقْرِنِينَ ۝ وَإِنَّا إِلَىٰ رَبِّنَا
+            لَمُنقَلِبُونَ
+          </blockquote>
+          <div class="library-actions">
+            <button class="btn btn-secondary" id="copyTravelDuaBtn" type="button">نسخ الدعاء</button>
+            <span id="copyDuaStatus" class="copy-dua-status" aria-live="polite"></span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <footer class="site-footer container">
+      <a class="brand" href="#home"><span class="brand-mark">الهدى</span></a>
+      <span>مكتبتك للقرآن والذكر والمعرفة</span>
+    </footer>
+  </main>
+
+  <nav id="mobileBottomNav" class="mobile-bottom-nav" aria-label="التنقل السريع">
+    <a class="mobile-nav-item active" href="#home" data-nav-section="home"><span
+        aria-hidden="true">⌂</span><small>الرئيسية</small></a>
+    <a class="mobile-nav-item" href="#quran" data-nav-section="quran"><span
+        aria-hidden="true">۞</span><small>القرآن</small></a>
+    <a class="mobile-nav-item" href="#azkar" data-nav-section="azkar"><span
+        aria-hidden="true">◌</span><small>الأذكار</small></a>
+    <a class="mobile-nav-item" href="#library" data-nav-section="library"><span
+        aria-hidden="true">▤</span><small>المكتبة</small></a>
+    <button class="mobile-nav-item" id="openMoreBtn" type="button" aria-haspopup="dialog"><span
+        aria-hidden="true">⋯</span><small>المزيد</small></button>
+  </nav>
+
+  <dialog id="moreDialog" class="bottom-sheet" aria-labelledby="moreTitle">
+    <div class="sheet-heading">
+      <div><span class="kicker">الهدى</span>
+        <h2 id="moreTitle">المزيد</h2>
+      </div>
+      <button class="icon-button" type="button" data-close-dialog aria-label="إغلاق">×</button>
+    </div>
+    <nav class="more-menu" aria-label="أقسام إضافية">
+      <a href="#hadith" data-close-dialog>الأحاديث <span>المجموعات والمختارات</span></a>
+      <a href="#prayer" data-close-dialog>مواقيت الصلاة <span>المواقيت حسب موقعك</span></a>
+      <a href="#qibla" data-close-dialog>القبلة <span>الاتجاه والمسافة</span></a>
+      <button id="openMoreSettingsBtn" type="button">الإعدادات <span>المظهر وخيارات القراءة</span></button>
+    </nav>
+  </dialog>
+
+  <script src="/app.js?v=10" defer></script>
+  <script src="/product.js?v=2" defer></script>
+</body>
+
+</html>

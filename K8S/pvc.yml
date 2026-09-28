@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-java-app
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: sc-java-app
+  resources:
+    requests:
+      storage: 10Gi

@@ -1,0 +1,9 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: sc-java-app
+provisioner: efs.csi.aws.com
+parameters:
+  provisioningMode: efs-ap
+  directoryPerms: "700"
+  fileSystemId: fs-09b2628844d4b2085
