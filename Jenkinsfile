@@ -77,8 +77,7 @@ pipeline {
 
                         git commit -m "Update image to ${IMAGE_VERSION}" || true
 
-                        git push https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/SayedAtwh/DevOps-End-to-End-AWS-GitOps-Platform.git HEAD:main
-                    '''
+                        git push https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/SayedAtwh/DevOps-End-to-End-AWS-GitOps-Platform.git HEAD:main                    '''
                 }
             }
         }
