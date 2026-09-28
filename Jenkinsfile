@@ -69,11 +69,15 @@ pipeline {
                 ]) {
                     sh '''
                         sed -i "s|image: .*|image: ${IMAGE_TAG}:${IMAGE_VERSION}|" K8S/deployment.yml
+
                         git config user.name "Jenkins"
                         git config user.email "jenkins@sayedatwh"
+
                         git add K8S/deployment.yml
+
                         git commit -m "Update image to ${IMAGE_VERSION}" || true
-                        git push https://github.com/SayedAtwh/DevOps-End-to-End-AWS-GitOps-Platform.git HEAD:main
+
+                        git push https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/SayedAtwh/DevOps-End-to-End-AWS-GitOps-Platform.git HEAD:main
                     '''
                 }
             }
