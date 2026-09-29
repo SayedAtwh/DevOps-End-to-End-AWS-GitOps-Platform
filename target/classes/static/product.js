@@ -21,10 +21,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const lastPageKey = 'alhuda-quran-last-page';
   let surahs = [];
   let activeQuranTab = 'surahs';
+  let quranSearchRequestId = 0;
+  let quranSearchTimer = null;
   let currentPage = Number(localStorage.getItem(lastPageKey)) || 1;
   let userCoordinates = null;
   let prayerData = null;
   let prayerTimer = null;
+  let prayerNotificationTimer = null;
+  let qiblaBearing = null;
+  let compassHeading = null;
+  let liveCompassEnabled = false;
   let favoritePages = [];
 
   try {
@@ -137,6 +143,89 @@ document.addEventListener('DOMContentLoaded', () => {
     quranCatalogList.innerHTML = '';
     const query = quranSearch.value.trim().toLocaleLowerCase('ar');
 
+    if (activeQuranTab === 'search') {
+      if (query.length < 2) {
+        quranCatalogList.innerHTML = '<p class="catalog-status">اكتب كلمتين على الأقل للبحث في الآيات.</p>';
+        return;
+      }
+      const requestId = ++quranSearchRequestId;
+      quranCatalogList.innerHTML = '<p class="catalog-status">جارٍ البحث في الآيات...</p>';
+      clearTimeout(quranSearchTimer);
+      quranSearchTimer = setTimeout(async () => {
+        try {
+          const response = await fetch(`https://api.alquran.cloud/v1/search/${encodeURIComponent(query)}/all/quran-uthmani`);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const payload = await response.json();
+          if (requestId !== quranSearchRequestId) return;
+          const matches = payload.data?.matches || [];
+          quranCatalogList.innerHTML = '';
+          if (!matches.length) {
+            quranCatalogList.innerHTML = '<p class="catalog-status">لا توجد آيات مطابقة.</p>';
+            return;
+          }
+          matches.slice(0, 50).forEach((match) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'quran-search-result';
+            const text = document.createElement('span');
+            text.textContent = match.text;
+            const reference = document.createElement('small');
+            reference.textContent = `${match.surah.name} · الآية ${new Intl.NumberFormat('ar-EG').format(match.numberInSurah)}`;
+            button.append(text, reference);
+            button.addEventListener('click', async () => {
+              try {
+                const detailResponse = await fetch(`https://api.alquran.cloud/v1/ayah/${match.number}/quran-uthmani`);
+                const detail = await detailResponse.json();
+                if (detail.data?.page) openQuranReader(detail.data.page);
+              } catch (error) {
+                quranCatalogList.insertAdjacentHTML('afterbegin', '<p class="catalog-status">تعذر فتح موضع الآية الآن.</p>');
+              }
+            });
+            quranCatalogList.appendChild(button);
+          });
+        } catch (error) {
+          if (requestId !== quranSearchRequestId) return;
+          quranCatalogList.innerHTML = '<p class="catalog-status">تعذر البحث الآن. تحقق من الاتصال وحاول مرة أخرى.</p>';
+        }
+      }, 300);
+      return;
+    }
+
+    if (activeQuranTab === 'ayahs') {
+      let savedAyahs = [];
+      try {
+        savedAyahs = JSON.parse(localStorage.getItem('alhuda-quran-ayah-bookmarks-v1') || '[]');
+      } catch (error) {
+        savedAyahs = [];
+      }
+      if (!Array.isArray(savedAyahs) || !savedAyahs.length) {
+        quranCatalogList.innerHTML = '<p class="catalog-status">الآيات التي تحفظها ستظهر هنا.</p>';
+        return;
+      }
+      const matchingAyahs = savedAyahs.filter((ayahNumber) => String(ayahNumber).includes(query));
+      if (!matchingAyahs.length) {
+        quranCatalogList.innerHTML = '<p class="catalog-status">لا توجد آيات محفوظة مطابقة.</p>';
+        return;
+      }
+      matchingAyahs.forEach((ayahNumber) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'quran-favorite-item';
+        button.textContent = `الآية ${new Intl.NumberFormat('ar-EG').format(ayahNumber)}`;
+        button.addEventListener('click', async () => {
+          try {
+            const response = await fetch(`https://api.alquran.cloud/v1/ayah/${ayahNumber}/quran-uthmani`);
+            const payload = await response.json();
+            if (payload.data?.page) openQuranReader(payload.data.page);
+          } catch (error) {
+            quranCatalogList.insertAdjacentHTML('afterbegin', '<p class="catalog-status">تعذر فتح الآية الآن.</p>');
+          }
+        });
+        quranCatalogList.appendChild(button);
+      });
+      return;
+    }
+
     if (activeQuranTab === 'surahs') {
       const matches = surahs.filter((surah) =>
         `${surah.number} ${surah.name} ${surah.englishName} ${surah.revelationType}`.toLocaleLowerCase('ar').includes(query)
@@ -236,12 +325,19 @@ document.addEventListener('DOMContentLoaded', () => {
   quranTabs.forEach((tab) => {
     tab.addEventListener('click', () => {
       activeQuranTab = tab.dataset.quranTab;
+      if (activeQuranTab !== 'search') {
+        quranSearchRequestId += 1;
+        clearTimeout(quranSearchTimer);
+      }
       quranTabs.forEach((item) => {
         const active = item === tab;
         item.classList.toggle('active', active);
         item.setAttribute('aria-selected', String(active));
       });
-      quranSearch.placeholder = activeQuranTab === 'surahs' ? 'ابحث باسم السورة أو رقمها' : 'اكتب للبحث';
+      quranSearch.placeholder = activeQuranTab === 'search'
+        ? 'ابحث بكلمة أو عبارة من الآية'
+        : activeQuranTab === 'surahs' ? 'ابحث باسم السورة أو رقمها'
+          : activeQuranTab === 'ayahs' ? 'ابحث برقم الآية المحفوظة' : 'اكتب للبحث';
       renderQuranCatalog();
     });
   });
@@ -451,6 +547,61 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('homePrayerCountdown').textContent = countdown;
   }
 
+  function updatePrayerNotificationControl() {
+    const button = document.getElementById('enablePrayerNotificationsBtn');
+    const status = document.getElementById('prayerNotificationStatus');
+    const enabled = localStorage.getItem('alhuda-prayer-notifications') === 'true';
+    if (!('Notification' in window)) {
+      button.disabled = true;
+      status.textContent = 'المتصفح لا يدعم تنبيهات الصلاة.';
+      return;
+    }
+    button.textContent = enabled ? 'إيقاف التنبيهات' : 'تفعيل تنبيهات الصلاة';
+    status.textContent = enabled
+      ? 'التنبيهات تعمل ما دام الموقع مفتوحًا.'
+      : 'يمكنك تفعيل تنبيه الصلاة القادمة.';
+  }
+
+  function schedulePrayerNotification() {
+    if (prayerNotificationTimer) clearTimeout(prayerNotificationTimer);
+    if (localStorage.getItem('alhuda-prayer-notifications') !== 'true'
+      || !('Notification' in window) || Notification.permission !== 'granted' || !prayerData) return;
+    const upcoming = nextPrayerFromNow();
+    if (!upcoming) return;
+    const delay = Math.max(1000, upcoming.time.getTime() - Date.now());
+    prayerNotificationTimer = setTimeout(() => {
+      new Notification(`حان وقت صلاة ${upcoming.name}`, { body: 'تقبل الله طاعتكم.' });
+      schedulePrayerNotification();
+    }, delay);
+  }
+
+  document.getElementById('enablePrayerNotificationsBtn').addEventListener('click', async () => {
+    const button = document.getElementById('enablePrayerNotificationsBtn');
+    const status = document.getElementById('prayerNotificationStatus');
+    if (!('Notification' in window)) return;
+    if (localStorage.getItem('alhuda-prayer-notifications') === 'true') {
+      localStorage.removeItem('alhuda-prayer-notifications');
+      if (prayerNotificationTimer) clearTimeout(prayerNotificationTimer);
+      updatePrayerNotificationControl();
+      return;
+    }
+    if (Notification.permission === 'denied') {
+      status.textContent = 'إذن التنبيهات مرفوض من المتصفح. غيّر الإذن من إعدادات الموقع.';
+      return;
+    }
+    const permission = Notification.permission === 'granted'
+      ? 'granted'
+      : await Notification.requestPermission();
+    if (permission !== 'granted') {
+      status.textContent = 'لم يتم السماح بإرسال التنبيهات.';
+      return;
+    }
+    localStorage.setItem('alhuda-prayer-notifications', 'true');
+    updatePrayerNotificationControl();
+    schedulePrayerNotification();
+  });
+  updatePrayerNotificationControl();
+
   async function loadPrayerTimes(url, locationName) {
     const status = document.getElementById('prayerLocationStatus');
     status.textContent = 'جارٍ تحميل المواقيت...';
@@ -465,6 +616,7 @@ document.addEventListener('DOMContentLoaded', () => {
       renderPrayerTimes();
       if (prayerTimer) clearInterval(prayerTimer);
       prayerTimer = setInterval(updatePrayerCountdown, 1000);
+      schedulePrayerNotification();
     } catch (error) {
       status.textContent = 'تعذر تحميل المواقيت. تحقق من الاتصال وحاول مرة أخرى.';
       console.error(error);
@@ -511,11 +663,63 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function showQiblaForCoordinates(latitude, longitude) {
     const result = calculateQibla(latitude, longitude);
+    qiblaBearing = result.bearing;
     document.getElementById('qiblaAngle').textContent = `${result.bearing}°`;
     document.getElementById('qiblaDistance').textContent = `المسافة إلى الكعبة نحو ${new Intl.NumberFormat('ar-EG').format(result.distance)} كم`;
-    document.getElementById('qiblaStatus').textContent = 'السهم يشير إلى اتجاه القبلة من موقعك.';
-    document.getElementById('qiblaNeedle').style.transform = `rotate(${result.bearing}deg)`;
+    document.getElementById('qiblaStatus').textContent = liveCompassEnabled
+      ? 'حرّك هاتفك حتى يشير السهم إلى القبلة.'
+      : 'السهم يوضح اتجاه القبلة نسبةً إلى الشمال.';
+    updateQiblaNeedle();
   }
+
+  function updateQiblaNeedle() {
+    if (qiblaBearing === null) return;
+    const relativeBearing = (qiblaBearing - (liveCompassEnabled ? compassHeading || 0 : 0) + 360) % 360;
+    document.getElementById('qiblaNeedle').style.transform = `rotate(${relativeBearing}deg)`;
+  }
+
+  function handleDeviceOrientation(event) {
+    const heading = Number.isFinite(event.webkitCompassHeading)
+      ? event.webkitCompassHeading
+      : Number.isFinite(event.alpha) ? (360 - event.alpha) % 360 : null;
+    if (heading === null) return;
+    compassHeading = heading;
+    updateQiblaNeedle();
+  }
+
+  document.getElementById('enableLiveCompassBtn').addEventListener('click', async () => {
+    const button = document.getElementById('enableLiveCompassBtn');
+    const status = document.getElementById('qiblaStatus');
+    if (liveCompassEnabled) {
+      liveCompassEnabled = false;
+      compassHeading = null;
+      window.removeEventListener('deviceorientation', handleDeviceOrientation);
+      button.textContent = 'تشغيل البوصلة الحية';
+      status.textContent = 'السهم يوضح اتجاه القبلة نسبةً إلى الشمال.';
+      updateQiblaNeedle();
+      return;
+    }
+    if (!window.DeviceOrientationEvent) {
+      status.textContent = 'مستشعر الاتجاه غير متاح على هذا الجهاز.';
+      return;
+    }
+    let permission = 'granted';
+    if (typeof window.DeviceOrientationEvent.requestPermission === 'function') {
+      try {
+        permission = await window.DeviceOrientationEvent.requestPermission();
+      } catch (error) {
+        permission = 'denied';
+      }
+    }
+    if (permission !== 'granted') {
+      status.textContent = 'لم يتم السماح باستخدام مستشعر الاتجاه.';
+      return;
+    }
+    liveCompassEnabled = true;
+    window.addEventListener('deviceorientation', handleDeviceOrientation);
+    button.textContent = 'إيقاف البوصلة الحية';
+    status.textContent = 'جارٍ انتظار اتجاه الهاتف...';
+  });
 
   document.getElementById('locateQiblaBtn').addEventListener('click', () => {
     if (userCoordinates) {
@@ -540,4 +744,15 @@ document.addEventListener('DOMContentLoaded', () => {
   todayDateLabel.textContent = new Intl.DateTimeFormat('ar-EG', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
   }).format(new Date());
+
+  const offlineStatus = document.getElementById('offlineStatus');
+  function updateOfflineStatus() {
+    offlineStatus.textContent = navigator.onLine ? 'المحتوى المفتوح يُحفظ للاستخدام دون اتصال' : 'أنت الآن دون اتصال';
+  }
+  window.addEventListener('online', updateOfflineStatus);
+  window.addEventListener('offline', updateOfflineStatus);
+  updateOfflineStatus();
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js').catch((error) => console.error('Service worker registration failed', error));
+  }
 });

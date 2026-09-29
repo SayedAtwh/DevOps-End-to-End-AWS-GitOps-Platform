@@ -6,12 +6,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>الهدى | Al-Huda</title>
   <meta name="description" content="الهدى | Al-Huda — رفيقك اليومي للقرآن والذكر والصلاة." />
+  <meta name="theme-color" content="#315c4a" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" href="/icon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
     href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap"
     rel="stylesheet" />
-  <link rel="stylesheet" href="/product.css?v=3" />
+  <link rel="stylesheet" href="/product.css?v=4" />
 </head>
 
 <body>
@@ -101,12 +104,16 @@
         <nav class="quran-library-tabs" role="tablist" aria-label="فهرس القرآن">
           <button class="quran-library-tab active" type="button" role="tab" aria-selected="true"
             data-quran-tab="surahs">السور</button>
+          <button class="quran-library-tab" type="button" role="tab" aria-selected="false" data-quran-tab="search">بحث
+            الآيات</button>
           <button class="quran-library-tab" type="button" role="tab" aria-selected="false"
             data-quran-tab="juz">الأجزاء</button>
           <button class="quran-library-tab" type="button" role="tab" aria-selected="false" data-quran-tab="last">آخر
             قراءة</button>
           <button class="quran-library-tab" type="button" role="tab" aria-selected="false"
             data-quran-tab="favorites">المفضلة</button>
+          <button class="quran-library-tab" type="button" role="tab" aria-selected="false" data-quran-tab="ayahs">آياتي
+            المحفوظة</button>
         </nav>
         <div id="quranCatalogList" class="quran-catalog-list" aria-live="polite">
           <p class="catalog-status">جارٍ تحميل فهرس القرآن...</p>
@@ -166,8 +173,48 @@
         </div>
 
         <audio id="quranAudioPlayer" controls preload="none"></audio>
+        <div class="audio-options">
+          <label class="visually-hidden" for="reciterSelect">القارئ</label>
+          <select id="reciterSelect" class="audio-select" aria-label="اختيار القارئ">
+            <option value="yasser">ياسر الدوسري</option>
+            <option value="mishary">مشاري العفاسي</option>
+            <option value="sudais">عبدالرحمن السديس</option>
+            <option value="husary">محمود خليل الحصري</option>
+          </select>
+          <label class="visually-hidden" for="audioSpeedSelect">سرعة التلاوة</label>
+          <select id="audioSpeedSelect" class="audio-select" aria-label="سرعة التلاوة">
+            <option value="0.75">0.75×</option>
+            <option value="1" selected>1×</option>
+            <option value="1.25">1.25×</option>
+            <option value="1.5">1.5×</option>
+          </select>
+        </div>
       </div>
     </div>
+
+    <dialog id="ayahActionsDialog" class="bottom-sheet" aria-labelledby="ayahActionsTitle">
+      <div class="sheet-heading">
+        <div><span class="kicker">القرآن الكريم</span>
+          <h2 id="ayahActionsTitle">الآية</h2>
+        </div>
+        <button class="icon-button" type="button" data-close-dialog aria-label="إغلاق">×</button>
+      </div>
+      <blockquote id="selectedAyahText" class="selected-ayah-text" dir="rtl"></blockquote>
+      <div class="ayah-action-buttons">
+        <button class="btn btn-secondary" id="showTafsirBtn" type="button">التفسير</button>
+        <button class="btn btn-secondary" id="playSelectedAyahBtn" type="button">استمع للآية</button>
+        <button class="btn btn-secondary" id="shareSelectedAyahBtn" type="button">مشاركة</button>
+        <button class="btn btn-secondary" id="bookmarkSelectedAyahBtn" type="button">حفظ الآية</button>
+      </div>
+      <p id="selectedAyahTafsir" class="ayah-tafsir" hidden aria-live="polite"></p>
+      <label for="selectedAyahNote" class="ayah-note-label">ملاحظتي</label>
+      <textarea id="selectedAyahNote" rows="3" maxlength="1000" placeholder="اكتب ملاحظة خاصة بهذه الآية"></textarea>
+      <div class="sheet-actions">
+        <button class="btn btn-primary" id="saveAyahNoteBtn" type="button">حفظ الملاحظة</button>
+        <button class="btn btn-secondary" id="deleteAyahNoteBtn" type="button">حذف</button>
+        <span id="ayahNoteStatus" class="copy-dua-status" aria-live="polite"></span>
+      </div>
+    </dialog>
 
     <dialog id="settingsDialog" class="bottom-sheet" aria-labelledby="settingsTitle">
       <div class="sheet-heading">
@@ -224,7 +271,8 @@
         <p id="dailyHadithText" class="hadith-text" lang="ar"></p>
         <div class="daily-hadith-footer">
           <span id="dailyHadithSource"></span>
-          <a id="dailyHadithReference" href="https://hadeethenc.com/" target="_blank" rel="noreferrer">المصدر والشرح</a>
+          <a id="dailyHadithReference" href="https://hadeethenc.com/ar/home" target="_blank" rel="noreferrer">المصدر
+            والشرح</a>
         </div>
       </article>
 
@@ -284,7 +332,8 @@
         </a>
       </div>
       <p id="hadithSearchEmpty" class="catalog-status" hidden>لا توجد مجموعات مطابقة.</p>
-      <p class="source-disclaimer">المجموعات الكاملة والبحث داخلها متاحان عبر مصدرها الأصلي Sunnah.com.</p>
+      <p class="source-disclaimer">تعرض Sunnah.com المتون العربية للمجموعات مع ترجمات؛ وتختلف درجات أحاديث السنن، فراجع
+        تخريج كل حديث.</p>
     </section>
 
     <section id="prayer" class="container content-section">
@@ -293,12 +342,16 @@
           <span class="kicker">المواقيت</span>
           <h2>مواقيت الصلاة</h2>
         </div>
-        <button class="btn btn-secondary" id="requestLocationBtn" type="button">استخدم موقعي</button>
+        <div class="section-actions">
+          <button class="btn btn-secondary" id="requestLocationBtn" type="button">استخدم موقعي</button>
+          <button class="btn btn-secondary" id="enablePrayerNotificationsBtn" type="button">تنبيهات الصلاة</button>
+        </div>
       </div>
 
       <div class="prayer-location-row">
         <span id="prayerCityLabel">المواقيت الافتراضية: القاهرة</span>
         <span id="hijriDateLabel" class="hijri-date"></span>
+        <span id="prayerNotificationStatus" class="section-note" aria-live="polite"></span>
       </div>
       <article class="next-prayer-panel">
         <div><span class="kicker">الصلاة القادمة</span>
@@ -337,6 +390,7 @@
           <p id="qiblaStatus">حدد موقعك لحساب اتجاه القبلة والمسافة.</p>
           <span id="qiblaDistance" class="qibla-distance"></span>
           <button class="btn btn-primary" id="locateQiblaBtn" type="button">تحديد اتجاه القبلة</button>
+          <button class="btn btn-secondary" id="enableLiveCompassBtn" type="button">تشغيل البوصلة الحية</button>
         </div>
       </div>
     </section>
@@ -402,12 +456,14 @@
 
       <nav class="library-shelves" aria-label="رفوف المكتبة الإسلامية">
         <a href="#quran"><span>01</span><strong>القرآن</strong></a>
-        <a href="https://quran.com/tafsirs" target="_blank" rel="noreferrer"><span>02</span><strong>التفسير</strong></a>
+        <a href="https://quran.com/ar/tafsirs" target="_blank"
+          rel="noreferrer"><span>02</span><strong>التفسير</strong></a>
         <a href="#hadith"><span>03</span><strong>الأحاديث</strong></a>
         <a href="#azkar"><span>04</span><strong>الأذكار</strong></a>
-        <a href="https://ar.islamway.net/" target="_blank" rel="noreferrer"><span>05</span><strong>السيرة</strong></a>
-        <a href="https://qurancomplex.gov.sa/" target="_blank" rel="noreferrer"><span>06</span><strong>علوم
-            القرآن</strong></a>
+        <a href="https://dorar.net/history" target="_blank" rel="noreferrer"><span>05</span><strong>السيرة
+            النبوية</strong></a>
+        <a href="https://dorar.net/tafseer" target="_blank" rel="noreferrer"><span>06</span><strong>موسوعة
+            التفسير</strong></a>
       </nav>
 
       <div class="library-grid">
@@ -433,6 +489,8 @@
           <div class="library-progress-track" role="progressbar" aria-label="إنجاز الورد اليومي" aria-valuemin="0"
             aria-valuemax="100" aria-valuenow="0">
             <span id="wirdProgressBar"></span>
+          </div>
+          <div id="weeklyReadingProgress" class="weekly-reading-progress" aria-label="تقدم القراءة خلال آخر سبعة أيام">
           </div>
           <div class="library-actions">
             <button class="btn btn-primary" id="markWirdPageBtn" type="button">أتممت صفحة</button>
@@ -496,6 +554,7 @@
     <footer class="site-footer container">
       <a class="brand" href="#home"><span class="brand-mark">الهدى</span></a>
       <span>مكتبتك للقرآن والذكر والمعرفة</span>
+      <span id="offlineStatus" aria-live="polite"></span>
     </footer>
   </main>
 
@@ -527,8 +586,8 @@
     </nav>
   </dialog>
 
-  <script src="/app.js?v=10" defer></script>
-  <script src="/product.js?v=2" defer></script>
+  <script src="/app.js?v=12" defer></script>
+  <script src="/product.js?v=4" defer></script>
 </body>
 
 </html>

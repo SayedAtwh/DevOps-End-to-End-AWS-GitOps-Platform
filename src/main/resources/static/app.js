@@ -17,8 +17,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   const nextPageBtn = document.getElementById('nextPageBtn');
   const listenNowBtn = document.getElementById('listenNowBtn');
   const modeButtons = document.querySelectorAll('.mode-btn');
+  const reciterSelect = document.getElementById('reciterSelect');
+  const audioSpeedSelect = document.getElementById('audioSpeedSelect');
+  const ayahActionsDialog = document.getElementById('ayahActionsDialog');
+  const selectedAyahTitle = document.getElementById('ayahActionsTitle');
+  const selectedAyahText = document.getElementById('selectedAyahText');
+  const selectedAyahTafsir = document.getElementById('selectedAyahTafsir');
+  const selectedAyahNote = document.getElementById('selectedAyahNote');
+  const ayahNoteStatus = document.getElementById('ayahNoteStatus');
 
   let surahs = [];
+  let currentAyahs = [];
+  let selectedAyah = null;
+  let ayahPlaybackQueue = null;
+  let ayahPlaybackIndex = -1;
 
   let currentSurahIndex = 0;
   let currentPage = 1;
@@ -26,7 +38,41 @@ document.addEventListener('DOMContentLoaded', async () => {
   let pageRequestId = 0;
   const savedPageKey = 'alhuda-quran-saved-page';
   const fontSizeKey = 'alhuda-quran-font-size';
+  const ayahNotesKey = 'alhuda-quran-ayah-notes-v1';
+  const ayahBookmarksKey = 'alhuda-quran-ayah-bookmarks-v1';
+  const audioSpeedKey = 'alhuda-quran-audio-speed';
+  const audioReciterKey = 'alhuda-quran-audio-reciter';
   let quranFontSize = Number(localStorage.getItem(fontSizeKey)) || 1.8;
+  let ayahNotes = {};
+  let ayahBookmarks = [];
+
+  try {
+    ayahNotes = JSON.parse(localStorage.getItem(ayahNotesKey) || '{}');
+    if (!ayahNotes || typeof ayahNotes !== 'object' || Array.isArray(ayahNotes)) ayahNotes = {};
+  } catch (error) {
+    ayahNotes = {};
+  }
+  try {
+    ayahBookmarks = JSON.parse(localStorage.getItem(ayahBookmarksKey) || '[]');
+    if (!Array.isArray(ayahBookmarks)) ayahBookmarks = [];
+  } catch (error) {
+    ayahBookmarks = [];
+  }
+
+  const reciters = {
+    yasser: { name: 'ياسر الدوسري', server: 'server11.mp3quran.net', folder: 'yasser', edition: 'ar.yasseraldosari', ayahAudio: false },
+    mishary: { name: 'مشاري العفاسي', server: 'server8.mp3quran.net', folder: 'afs', edition: 'ar.alafasy', audioQuality: 128, ayahAudio: true },
+    sudais: { name: 'عبدالرحمن السديس', server: 'server11.mp3quran.net', folder: 'sds', edition: 'ar.abdurrahmaansudais', audioQuality: 192, ayahAudio: true },
+    husary: { name: 'محمود خليل الحصري', server: 'server13.mp3quran.net', folder: 'husr', edition: 'ar.husary', audioQuality: 128, ayahAudio: true }
+  };
+
+  const savedReciter = localStorage.getItem(audioReciterKey);
+  if (savedReciter && reciters[savedReciter]) reciterSelect.value = savedReciter;
+  const savedAudioSpeed = localStorage.getItem(audioSpeedKey);
+  if ([...audioSpeedSelect.options].some((option) => option.value === savedAudioSpeed)) {
+    audioSpeedSelect.value = savedAudioSpeed;
+  }
+  audio.playbackRate = Number(audioSpeedSelect.value);
 
   function applyQuranFontSize() {
     quranFontSize = Math.max(1.4, Math.min(2.6, quranFontSize));
@@ -81,7 +127,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function getAudioUrl(surahNumber) {
-    return `https://server11.mp3quran.net/yasser/${String(surahNumber).padStart(3, '0')}.mp3`;
+    const reciter = reciters[reciterSelect.value] || reciters.yasser;
+    return `https://${reciter.server}/${reciter.folder}/${String(surahNumber).padStart(3, '0')}.mp3`;
   }
 
   function updateAudioState() {
@@ -92,10 +139,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       audio.src = audioUrl;
       audio.load();
     }
-    audioLabel.textContent = `${surah.name} كاملة`;
+    const reciter = reciters[reciterSelect.value] || reciters.yasser;
+    audioLabel.textContent = `${surah.name} كاملة · ${reciter.name}`;
   }
 
   function renderAyahs(ayahs) {
+    currentAyahs = ayahs;
     ayahContainer.innerHTML = '';
     const fragment = document.createDocumentFragment();
 
@@ -107,15 +156,155 @@ document.addEventListener('DOMContentLoaded', async () => {
       text.textContent = formatAyahText(ayah.text);
       fragment.appendChild(text);
 
-      const marker = document.createElement('span');
+      const marker = document.createElement('button');
+      marker.type = 'button';
       marker.className = 'page-ayah-marker';
-      marker.setAttribute('aria-label', `الآية ${ayah.numberInSurah}`);
+      marker.dataset.ayahIndex = String(index);
+      marker.setAttribute('aria-label', `خيارات الآية ${ayah.numberInSurah}`);
+      marker.title = `خيارات الآية ${ayah.numberInSurah}`;
+      if (ayahBookmarks.includes(ayah.number)) marker.classList.add('bookmarked');
       marker.textContent = new Intl.NumberFormat('ar-EG').format(ayah.numberInSurah);
       fragment.appendChild(marker);
     });
 
     ayahContainer.appendChild(fragment);
   }
+
+  function openAyahActions(ayah) {
+    selectedAyah = ayah;
+    selectedAyahTitle.textContent = `${ayah.surah.name} · الآية ${new Intl.NumberFormat('ar-EG').format(ayah.numberInSurah)}`;
+    selectedAyahText.textContent = formatAyahText(ayah.text);
+    selectedAyahNote.value = ayahNotes[String(ayah.number)] || '';
+    document.getElementById('bookmarkSelectedAyahBtn').textContent = ayahBookmarks.includes(ayah.number)
+      ? 'إزالة من الآيات المحفوظة'
+      : 'حفظ الآية';
+    selectedAyahTafsir.hidden = true;
+    selectedAyahTafsir.textContent = '';
+    ayahNoteStatus.textContent = '';
+    ayahActionsDialog.showModal();
+  }
+
+  async function shareText(title, text) {
+    if (navigator.share) {
+      await navigator.share({ title, text });
+      return;
+    }
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      textarea.remove();
+    }
+    ayahNoteStatus.textContent = 'تم نسخ النص للمشاركة';
+  }
+
+  async function loadSelectedAyahTafsir() {
+    if (!selectedAyah) return;
+    selectedAyahTafsir.hidden = false;
+    selectedAyahTafsir.textContent = 'جارٍ تحميل التفسير...';
+    try {
+      const data = await fetchQuranData(`https://api.alquran.cloud/v1/ayah/${selectedAyah.number}/ar.muyassar`);
+      selectedAyahTafsir.textContent = data.text ? `التفسير الميسر: ${data.text}` : 'التفسير غير متاح لهذه الآية.';
+    } catch (error) {
+      selectedAyahTafsir.textContent = 'تعذر تحميل التفسير الآن. تحقق من الاتصال وحاول مرة أخرى.';
+      console.error(error);
+    }
+  }
+
+  function playAyahAt(index) {
+    const ayah = ayahPlaybackQueue?.[index];
+    if (!ayah) {
+      ayahPlaybackQueue = null;
+      ayahPlaybackIndex = -1;
+      return;
+    }
+    ayahPlaybackIndex = index;
+    const reciter = reciters[reciterSelect.value] || reciters.yasser;
+    audioLabel.textContent = `${ayah.surah.name} · الآية ${ayah.numberInSurah} · ${reciter.name}`;
+    if (!reciter.ayahAudio) {
+      audioLabel.textContent = 'التشغيل آيةً آية غير متاح لهذا القارئ';
+      ayahPlaybackQueue = null;
+      ayahPlaybackIndex = -1;
+      return;
+    }
+    audio.src = `https://cdn.islamic.network/quran/audio/${reciter.audioQuality}/${reciter.edition}/${ayah.number}.mp3`;
+    audio.playbackRate = Number(audioSpeedSelect.value);
+    audio.load();
+    audio.play().catch((error) => {
+      audioLabel.textContent = 'تعذر تحميل الآية الصوتية';
+      console.error(error);
+    });
+  }
+
+  ayahContainer.addEventListener('click', (event) => {
+    const marker = event.target.closest('[data-ayah-index]');
+    if (marker) openAyahActions(currentAyahs[Number(marker.dataset.ayahIndex)]);
+  });
+
+  document.getElementById('showTafsirBtn').addEventListener('click', loadSelectedAyahTafsir);
+  document.getElementById('playSelectedAyahBtn').addEventListener('click', () => {
+    const selectedIndex = currentAyahs.indexOf(selectedAyah);
+    if (selectedIndex < 0) return;
+    ayahPlaybackQueue = currentAyahs;
+    ayahActionsDialog.close();
+    playAyahAt(selectedIndex);
+  });
+  document.getElementById('shareSelectedAyahBtn').addEventListener('click', async () => {
+    if (!selectedAyah) return;
+    const reference = `${selectedAyah.surah.name}، الآية ${selectedAyah.numberInSurah}`;
+    try {
+      await shareText(reference, `${formatAyahText(selectedAyah.text)}\n${reference}`);
+    } catch (error) {
+      if (error.name !== 'AbortError') ayahNoteStatus.textContent = 'تعذرت المشاركة أو النسخ.';
+    }
+  });
+  document.getElementById('saveAyahNoteBtn').addEventListener('click', () => {
+    if (!selectedAyah) return;
+    const note = selectedAyahNote.value.trim();
+    if (note) ayahNotes[String(selectedAyah.number)] = note;
+    else delete ayahNotes[String(selectedAyah.number)];
+    localStorage.setItem(ayahNotesKey, JSON.stringify(ayahNotes));
+    ayahNoteStatus.textContent = note ? 'تم حفظ الملاحظة على هذا الجهاز' : 'تم حذف الملاحظة';
+  });
+  document.getElementById('deleteAyahNoteBtn').addEventListener('click', () => {
+    if (!selectedAyah) return;
+    delete ayahNotes[String(selectedAyah.number)];
+    localStorage.setItem(ayahNotesKey, JSON.stringify(ayahNotes));
+    selectedAyahNote.value = '';
+    ayahNoteStatus.textContent = 'تم حذف الملاحظة';
+  });
+  document.getElementById('bookmarkSelectedAyahBtn').addEventListener('click', () => {
+    if (!selectedAyah) return;
+    ayahBookmarks = ayahBookmarks.includes(selectedAyah.number)
+      ? ayahBookmarks.filter((number) => number !== selectedAyah.number)
+      : [...ayahBookmarks, selectedAyah.number].sort((first, second) => first - second);
+    localStorage.setItem(ayahBookmarksKey, JSON.stringify(ayahBookmarks));
+    renderAyahs(currentAyahs);
+    document.getElementById('bookmarkSelectedAyahBtn').textContent = ayahBookmarks.includes(selectedAyah.number)
+      ? 'إزالة من الآيات المحفوظة'
+      : 'حفظ الآية';
+    ayahNoteStatus.textContent = ayahBookmarks.includes(selectedAyah.number) ? 'تم حفظ الآية' : 'تمت إزالة الآية المحفوظة';
+  });
+
+  reciterSelect.addEventListener('change', () => {
+    localStorage.setItem(audioReciterKey, reciterSelect.value);
+    const wasPlaying = !audio.paused;
+    ayahPlaybackQueue = null;
+    ayahPlaybackIndex = -1;
+    updateAudioState();
+    if (wasPlaying) audio.play().catch(() => { });
+  });
+  audioSpeedSelect.addEventListener('change', () => {
+    audio.playbackRate = Number(audioSpeedSelect.value);
+    localStorage.setItem(audioSpeedKey, audioSpeedSelect.value);
+  });
 
   async function updateQuranPage() {
     if (!surahs.length) {
@@ -169,11 +358,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function togglePlayback() {
+    ayahPlaybackQueue = null;
+    ayahPlaybackIndex = -1;
     if (!audio.src) {
       updateAudioState();
     }
 
     if (audio.paused) {
+      updateAudioState();
       audio.play().catch(() => {
         playSurahBtn.textContent = '▶';
       });
@@ -266,6 +458,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   audio.addEventListener('pause', () => {
+    playSurahBtn.textContent = '▶';
+  });
+
+  audio.addEventListener('ended', () => {
+    if (ayahPlaybackQueue && ayahPlaybackIndex + 1 < ayahPlaybackQueue.length) {
+      playAyahAt(ayahPlaybackIndex + 1);
+      return;
+    }
+    ayahPlaybackQueue = null;
+    ayahPlaybackIndex = -1;
     playSurahBtn.textContent = '▶';
   });
 
@@ -420,7 +622,35 @@ document.addEventListener('DOMContentLoaded', () => {
         updateCategoryProgress();
       });
 
-      itemFooter.append(repeat, countButton);
+      const shareButton = document.createElement('button');
+      shareButton.type = 'button';
+      shareButton.className = 'btn btn-secondary azkar-share-btn';
+      shareButton.textContent = 'مشاركة';
+      shareButton.addEventListener('click', async () => {
+        const shareText = `${zekr.ARABIC_TEXT}\n${activeCategory.TITLE} · حصن المسلم`;
+        try {
+          if (navigator.share) await navigator.share({ title: activeCategory.TITLE, text: shareText });
+          else if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(shareText);
+            shareButton.textContent = 'تم النسخ';
+          } else {
+            const textarea = document.createElement('textarea');
+            textarea.value = shareText;
+            textarea.setAttribute('readonly', '');
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            textarea.remove();
+            shareButton.textContent = 'تم النسخ';
+          }
+        } catch (error) {
+          if (error.name !== 'AbortError') shareButton.textContent = 'تعذرت المشاركة';
+        }
+      });
+
+      itemFooter.append(repeat, countButton, shareButton);
       item.append(itemHeader, text, itemFooter);
       azkarList.appendChild(item);
     });
@@ -535,6 +765,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const resetWirdButton = document.getElementById('resetWirdBtn');
   const wirdProgressBar = document.getElementById('wirdProgressBar');
   const wirdProgressTrack = document.querySelector('.wird-module .library-progress-track');
+  const weeklyReadingProgress = document.getElementById('weeklyReadingProgress');
   const tasbeehPhraseSelect = document.getElementById('tasbeehPhraseSelect');
   const tasbeehTargetSelect = document.getElementById('tasbeehTargetSelect');
   const tasbeehTapButton = document.getElementById('tasbeehTapBtn');
@@ -552,8 +783,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const wirdGoalKey = 'alhuda-wird-goal';
   const tasbeehCountsKey = 'alhuda-tasbeeh-counts';
   const tasbeehTargetKey = 'alhuda-tasbeeh-target';
+  const weeklyReadingKey = 'alhuda-reading-week-v1';
   let pagesRead = Number(localStorage.getItem(wirdCountKey)) || 0;
   let tasbeehCounts = {};
+  let weeklyReading = {};
+
+  try {
+    weeklyReading = JSON.parse(localStorage.getItem(weeklyReadingKey) || '{}');
+    if (!weeklyReading || typeof weeklyReading !== 'object' || Array.isArray(weeklyReading)) weeklyReading = {};
+  } catch (error) {
+    weeklyReading = {};
+  }
 
   try {
     tasbeehCounts = JSON.parse(localStorage.getItem(tasbeehCountsKey) || '{}');
@@ -586,6 +826,44 @@ document.addEventListener('DOMContentLoaded', () => {
     markWirdPageButton.textContent = pagesRead >= goal ? 'اكتمل ورد اليوم' : 'أتممت صفحة';
   }
 
+  function dateStorageKey(date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  }
+
+  function renderWeeklyReading() {
+    const days = Array.from({ length: 7 }, (_, index) => {
+      const date = new Date();
+      date.setDate(date.getDate() - (6 - index));
+      const entry = weeklyReading[dateStorageKey(date)];
+      const count = Array.isArray(entry?.pages) ? entry.pages.length : 0;
+      return { date, count };
+    });
+    const maximum = Math.max(1, ...days.map((day) => day.count));
+    weeklyReadingProgress.innerHTML = '';
+    days.forEach(({ date, count }) => {
+      const column = document.createElement('div');
+      column.className = 'week-day-column';
+      column.title = `${new Intl.DateTimeFormat('ar-EG', { weekday: 'long' }).format(date)}: ${formatCount(count)} صفحة`;
+      const bar = document.createElement('span');
+      bar.className = 'week-day-bar';
+      bar.style.setProperty('--day-fill', `${count ? Math.max(8, Math.round((count / maximum) * 100)) : 0}%`);
+      const label = document.createElement('small');
+      label.textContent = new Intl.DateTimeFormat('ar-EG', { weekday: 'short' }).format(date);
+      column.append(bar, label);
+      weeklyReadingProgress.appendChild(column);
+    });
+  }
+
+  function recordReadPage(pageNumber) {
+    const key = dateStorageKey(new Date());
+    const entry = weeklyReading[key] || { pages: [] };
+    if (!Array.isArray(entry.pages)) entry.pages = [];
+    if (!entry.pages.includes(Number(pageNumber))) entry.pages.push(Number(pageNumber));
+    weeklyReading[key] = entry;
+    localStorage.setItem(weeklyReadingKey, JSON.stringify(weeklyReading));
+    renderWeeklyReading();
+  }
+
   function updateTasbeeh() {
     const phrase = tasbeehPhraseSelect.value;
     const count = Number(tasbeehCounts[phrase]) || 0;
@@ -601,6 +879,9 @@ document.addEventListener('DOMContentLoaded', () => {
   wirdDateLabel.textContent = new Intl.DateTimeFormat('ar-EG', { weekday: 'long', day: 'numeric', month: 'long' }).format(today);
   updateWird();
   updateTasbeeh();
+  renderWeeklyReading();
+
+  window.addEventListener('huda-quran-page-updated', (event) => recordReadPage(event.detail.page));
 
   wirdGoalSelect.addEventListener('change', () => {
     localStorage.setItem(wirdGoalKey, wirdGoalSelect.value);
@@ -610,6 +891,10 @@ document.addEventListener('DOMContentLoaded', () => {
   markWirdPageButton.addEventListener('click', () => {
     pagesRead += 1;
     localStorage.setItem(wirdCountKey, String(pagesRead));
+    const key = dateStorageKey(new Date());
+    const lastReadPage = Number(localStorage.getItem('alhuda-quran-last-page'))
+      || Number(localStorage.getItem('alhuda-quran-saved-page')) || 1;
+    recordReadPage(lastReadPage);
     updateWird();
   });
 
