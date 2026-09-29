@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: java-app
-          image: sayedatwhdevops/java-app:v7
+          image: sayedatwhdevops/java-app:v8
           ports:
             - containerPort: 8090
 
