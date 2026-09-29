@@ -3,7 +3,6 @@ kind: Deployment
 metadata:
   name: deployment-java-app
   namespace: java-app
-
 spec:
   replicas: 3
 
@@ -31,7 +30,7 @@ spec:
 
           volumeMounts:
             - name: volume-java-app
-              mountPath: /usr/share/nginx/html/
+              mountPath: /app/data
 
       volumes:
         - name: volume-java-app
