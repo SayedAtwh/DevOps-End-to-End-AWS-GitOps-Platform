@@ -1,0 +1,27 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: java-k8s-alert
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack
+    release: monitoring
+spec:
+  groups:
+  - name: sayed-k8s-alerts
+    rules:
+    - alert: HighCPUUsage
+      expr: sum(rate(container_cpu_usage_seconds_total{container!="POD",container!=""}[5m])) by (pod, namespace) > 0.5
+      labels:
+        severity: critical
+      annotations:
+        summary: "High CPU usage detected"
+        description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is using {{ $value }} CPU"
+
+    - alert: HighMemoryUsage
+      expr: sum(container_memory_usage_bytes{container!="POD",container!=""}) by (pod, namespace) > 1073741824
+      labels:
+        severity: critical
+      annotations:
+        summary: "High memory usage detected"
+        description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is using {{ $value }} memory"

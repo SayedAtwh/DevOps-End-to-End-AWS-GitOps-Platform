@@ -1,0 +1,33 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: sayed-alert-manager
+  namespace: monitoring
+  labels:
+    release: monitoring
+    app: kube-prometheus-stack
+
+spec:
+  route:
+    receiver: 'sayed-slack'
+    repeatInterval: 30m
+
+    routes:
+    - matchers:
+      - name: alertname
+        value: HighCPUUsage
+      repeatInterval: 10m
+
+    - matchers:
+      - name: alertname
+        value: HighMemoryUsage
+      repeatInterval: 10m
+
+  receivers:
+  - name: 'sayed-slack'
+    slackConfigs:
+    - apiURL:
+        key: webhook
+        name: alertmanager-secret-java-app
+      channel: '#k8s-promethues-alert'
+      sendResolved: true
